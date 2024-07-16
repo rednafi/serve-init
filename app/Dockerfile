@@ -14,7 +14,7 @@ COPY app/go.mod app/go.sum ./
 RUN go mod download
 
 # Copy the rest of the application code
-COPY app/ .
+COPY . .
 
 # Build the application
 RUN go build -o main .
