@@ -70,35 +70,35 @@ jobs:
           docker push $APP_IMAGE_NAME
           docker push $CADDY_IMAGE_NAME
 
-      # - name: Deploy to server
-      #   env:
-      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     SERVER_IP: ${{ secrets.SERVER_IP }}
-      #     SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-      #     REPO_URL: ${{ secrets.REPO_URL }}
-      #   run: |
-      #     mkdir -p ~/.ssh
-      #     echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-      #     chmod 600 ~/.ssh/id_ed25519
-      #     ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-      #     ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
-      #       if [ ! -d "~/deployed_apps/app" ]; then
-      #         git clone $REPO_URL ~/deployed_apps/app
-      #       fi
-      #     EOF
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          REPO_URL: ${{ secrets.REPO_URL }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+            if [ ! -d "~/deployed_apps/app" ]; then
+              git clone $REPO_URL ~/deployed_apps/app
+            fi
+          EOF
 
-      # - name: Pull latest code and deploy
-      #   env:
-      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     SERVER_IP: ${{ secrets.SERVER_IP }}
-      #     SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-      #     APP_IMAGE_NAME: ghcr.io/${{ github.repository }}/app:latest
-      #     CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
-      #   run: |
-      #     ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
-      #       cd ~/deployed_apps/app
-      #       git pull
-      #       docker pull $APP_IMAGE_NAME
-      #       docker pull $CADDY_IMAGE_NAME
-      #       docker compose -f docker-compose.yml up -d
-      #     EOF
+      - name: Pull latest code and deploy
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          APP_IMAGE_NAME: ghcr.io/${{ github.repository }}/app:latest
+          CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
+        run: |
+          ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+            cd ~/deployed_apps/app
+            git pull
+            docker pull $APP_IMAGE_NAME
+            docker pull $CADDY_IMAGE_NAME
+            docker compose -f docker-compose.yml up -d
+          EOF
