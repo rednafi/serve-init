@@ -13,7 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Uncomment and update the following steps if necessary
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
