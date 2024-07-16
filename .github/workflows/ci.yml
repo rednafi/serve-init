@@ -72,12 +72,14 @@ jobs:
           docker push $APP_IMAGE_NAME
           docker push $CADDY_IMAGE_NAME
 
-      - name: Deploy to server
+     - name: Deploy to server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
           REPO_URL: ${{ secrets.REPO_URL }}
+          APP_IMAGE_NAME: ghcr.io/${{ github.repository }}/app:latest
+          CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
