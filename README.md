@@ -54,4 +54,5 @@ Initialize a scratchpad server.
 
 ## Deployment
 
-There's a template CI that uses GitHub Actions to deploy a simple service
+The template `.github/workflows/deploy.yml` uses GitHub Actions to deploy a simple REST API
+defined in the `app` directory. 

@@ -1,0 +1,12 @@
+catfacts.z.rednafi.com {
+    reverse_proxy go-cat-facts:8080
+
+    # Enable rate limiting
+    rate_limit {
+        zone default {
+            key  {remote_ip}
+            events 10
+            window  1m
+        }
+    }
+}

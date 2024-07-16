@@ -1,0 +1,11 @@
+# Build Caddy with the rate limit plugin
+FROM caddy:builder-alpine AS builder
+
+RUN xcaddy build \
+    --with github.com/mholt/caddy-ratelimit
+
+# Final stage: use the official Caddy image
+FROM caddy:alpine
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY Caddyfile /etc/caddy/Caddyfile
