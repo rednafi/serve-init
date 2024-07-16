@@ -11,10 +11,14 @@ services:
       - AUTH_TOKEN=${AUTH_TOKEN}
 
   caddy:
-    image: caddy2-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
     ports:
       - "80:80"
       - "443:443"
+    networks:
+      - app-network
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
 
