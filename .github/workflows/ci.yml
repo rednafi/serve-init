@@ -57,6 +57,7 @@ jobs:
 
       - name: Build and push Docker images
         run: |
+          cd app
           docker-compose -f docker-compose.yml build
           docker tag $(docker-compose -f docker-compose.yml config | grep 'image:' | awk '{print $2}') ghcr.io/${{ github.repository }}/app:latest
           docker push ghcr.io/${{ github.repository }}/app:latest
