@@ -56,6 +56,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Docker images
+        workdir: app
         run: docker compose -f docker-compose.yml build
 
       - name: List Docker images
