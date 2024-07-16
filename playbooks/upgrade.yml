@@ -1,0 +1,41 @@
+---
+- name: Upgrade Ubuntu servers to the latest stable LTS version
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update APT package index
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all installed packages to the latest version
+      apt:
+        upgrade: dist
+
+    - name: Install the 'update-manager-core' package
+      apt:
+        name: update-manager-core
+        state: present
+
+    - name: Check for a new Ubuntu LTS release
+      command: do-release-upgrade -c
+      register: check_upgrade_output
+      ignore_errors: yes
+
+    - name: Set upgrade_available fact if a new release is found
+      set_fact:
+        upgrade_available: "{{ 'New release' in check_upgrade_output.stdout }}"
+
+    - name: Upgrade Ubuntu to the latest LTS release
+      command: do-release-upgrade -f DistUpgradeViewNonInteractive
+      when: upgrade_available
+      register: upgrade_output
+      ignore_errors: yes
+
+    - name: Reboot the server if needed
+      reboot:
+      when: upgrade_available and upgrade_output is changed
+
+    - name: Remove unused packages and clean up
+      apt:
+        autoremove: yes
+        autoclean: yes

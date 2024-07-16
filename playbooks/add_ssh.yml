@@ -1,0 +1,88 @@
+---
+# Play 1: Add current user's SSH to the servers
+- name: Add current user's SSH to servers
+  hosts: servers
+  become: yes
+  vars:
+    ssh_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_ed25519.pub') }}"
+    user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
+    ssh_dir: "/home/{{ user }}/.ssh"
+    authorized_keys_path: "/home/{{ user }}/.ssh/authorized_keys"
+
+  tasks:
+    - name: Ensure user exists
+      user:
+        name: "{{ user }}"
+        state: present
+      become: yes
+
+    - name: Ensure .ssh directory exists
+      file:
+        path: "{{ ssh_dir }}"
+        state: directory
+        mode: "0700"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+      become: yes
+
+    - name: Add SSH key to authorized_keys
+      authorized_key:
+        user: "{{ user }}"
+        state: present
+        key: "{{ ssh_key }}"
+      become: yes
+
+# Play 2: Create a new pair of SSH key pairs for CI
+- name: Create CI SSH key pair
+  hosts: servers
+  become: yes
+  vars:
+    ssh_key_name: "github_actions_ci_id_ed25519"
+    user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
+    ssh_key_path: "/home/{{ user }}/.ssh/{{ ssh_key_name }}"
+    ssh_private_key_permissions: '0600'
+    ssh_public_key_path: "{{ ssh_key_path }}.pub"
+
+  tasks:
+    - name: Generate new CI Ed25519 key pair
+      openssh_keypair:
+        path: "{{ ssh_key_path }}"
+        type: ed25519
+        force: yes
+      become: yes
+      become_user: "{{ user }}"
+
+    - name: Ensure the CI public key file exists
+      stat:
+        path: "{{ ssh_public_key_path }}"
+      register: ssh_pubkey_stat
+
+    - name: Wait for the CI public key file to be created
+      wait_for:
+        path: "{{ ssh_public_key_path }}"
+        timeout: 30
+      when: not ssh_pubkey_stat.stat.exists
+
+    - name: Set permissions on the CI private key
+      file:
+        path: "{{ ssh_key_path }}"
+        mode: "{{ ssh_private_key_permissions }}"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+      become: yes
+
+    - name: Delay to ensure file system synchronization
+      wait_for:
+        timeout: 5
+
+    - name: Read CI public key file contents
+      command: cat {{ ssh_public_key_path }}
+      register: ci_pubkey_contents
+      become: yes
+
+    - name: Add CI public key to authorized_keys
+      authorized_key:
+        user: "{{ user }}"
+        state: present
+        key: "{{ ci_pubkey_contents.stdout }}"
+      become: yes
