@@ -65,11 +65,11 @@ jobs:
         run: |
           APP_IMAGE_NAME=ghcr.io/${{ github.repository }}/app:latest
           CADDY_IMAGE_NAME=ghcr.io/${{ github.repository }}/caddy:latest
-          docker tag app:latest $APP_IMAGE_NAME
-          docker tag caddy:latest $CADDY_IMAGE_NAME
+          docker tag app_app:latest $APP_IMAGE_NAME
+          docker tag caddy2-alpine:latest $CADDY_IMAGE_NAME
           docker push $APP_IMAGE_NAME
           docker push $CADDY_IMAGE_NAME
-
+          
       - name: Deploy to server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
