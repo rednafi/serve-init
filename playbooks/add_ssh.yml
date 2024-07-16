@@ -40,7 +40,7 @@
     ssh_key_name: "github_actions_ci_id_ed25519"
     user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
     ssh_key_path: "/home/{{ user }}/.ssh/{{ ssh_key_name }}"
-    ssh_private_key_permissions: '0600'
+    ssh_private_key_permissions: "0600"
     ssh_public_key_path: "{{ ssh_key_path }}.pub"
 
   tasks:

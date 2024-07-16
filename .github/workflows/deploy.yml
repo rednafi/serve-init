@@ -10,42 +10,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: List files for debugging
+        run: ls -al
+        # This step helps you see the directory structure and confirm the location of docker-compose.yml
 
-    - name: Cache Docker layers
-      uses: actions/cache@v2
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Log in to GitHub Container Registry
-      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
-    - name: Build and push Docker images
-      run: |
-        docker-compose build
-        docker tag your-service:latest ghcr.io/${{ github.repository }}/your-service:latest
-        docker push ghcr.io/${{ github.repository }}/your-service:latest
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-    - name: Deploy to server
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        SERVER_IP: ${{ secrets.SERVER_IP }}
-        SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-        scp -i ~/.ssh/id_ed25519 docker-compose.yml $SSH_USERNAME@$SERVER_IP:~/app/
-        ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
-          cd ~/app
-          docker-compose pull
-          docker-compose up -d
-        EOF
+      - name: Build and push Docker images
+        run: |
+          docker-compose -f docker-compose.yml build app
+          docker tag app:latest ghcr.io/${{ github.repository }}/app:latest
+          docker push ghcr.io/${{ github.repository }}/app:latest
+
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+          scp -i ~/.ssh/id_ed25519 docker-compose.yml $SSH_USERNAME@$SERVER_IP:~/app/
+          ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+            cd ~/app
+            docker-compose pull
+            docker-compose up -d
+          EOF
