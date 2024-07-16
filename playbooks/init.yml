@@ -88,3 +88,11 @@
       community.general.ufw:
         state: enabled
         default: deny
+
+    - name: Create app directory for deployed application
+      file:
+        path: /home/{{ created_username }}/deployed_apps
+        state: directory
+        owner: "{{ created_username }}"
+        group: "{{ created_username }}"
+        mode: '0755'

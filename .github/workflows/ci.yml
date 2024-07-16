@@ -58,7 +58,7 @@ jobs:
       - name: Build and push Docker images
         run: |
           cd app
-          docker compose -f ../docker-compose.yml build
+          docker compose -f docker-compose.yml build
           IMAGE_NAME=ghcr.io/${{ github.repository }}/app:latest
           docker tag app_app:latest $IMAGE_NAME
           docker push $IMAGE_NAME
@@ -73,9 +73,9 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-          scp -i ~/.ssh/id_ed25519 docker-compose.yml $SSH_USERNAME@$SERVER_IP:~/app/
+          scp -i ~/.ssh/id_ed25519 docker-compose.yml $SSH_USERNAME@$SERVER_IP:~/deployed_apps/app
           ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
-            cd ~/app
+            cd ~/deployed_apps/app
             docker compose pull
             docker compose up -d
           EOF
