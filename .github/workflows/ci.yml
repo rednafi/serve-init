@@ -58,9 +58,10 @@ jobs:
       - name: Build and push Docker images
         run: |
           cd app
-          docker-compose -f docker-compose.yml build
-          docker tag $(docker-compose -f docker-compose.yml config | grep 'image:' | awk '{print $2}') ghcr.io/${{ github.repository }}/app:latest
-          docker push ghcr.io/${{ github.repository }}/app:latest
+          docker compose -f ../docker-compose.yml build
+          IMAGE_NAME=ghcr.io/${{ github.repository }}/app:latest
+          docker tag app_app:latest $IMAGE_NAME
+          docker push $IMAGE_NAME
 
       - name: Deploy to server
         env:
@@ -75,6 +76,6 @@ jobs:
           scp -i ~/.ssh/id_ed25519 docker-compose.yml $SSH_USERNAME@$SERVER_IP:~/app/
           ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
             cd ~/app
-            docker-compose pull
-            docker-compose up -d
+            docker compose pull
+            docker compose up -d
           EOF

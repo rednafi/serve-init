@@ -10,9 +10,6 @@ WORKDIR /app
 # Copy the rest of the application code
 COPY . .
 
-# Download the Go modules
-RUN go mod download
-
 # Build the application
 RUN go build -o main .
 
