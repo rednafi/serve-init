@@ -59,7 +59,7 @@ jobs:
         env:
           AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
         run: docker compose -f app/docker-compose.yml build
-      
+
       - name: List Docker images
         run: docker images
 
@@ -80,17 +80,13 @@ jobs:
           REPO_URL: ${{ secrets.REPO_URL }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-
           ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-
-          ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
             if [ ! -d "~/deployed_apps/app" ]; then
               git clone $REPO_URL ~/deployed_apps/app
             fi
-
-          ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
             cd ~/deployed_apps/app
             git pull
             docker pull $APP_IMAGE_NAME
