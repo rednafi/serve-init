@@ -60,22 +60,19 @@ jobs:
           cd app
           docker compose -f docker-compose.yml build
           IMAGE_NAME=ghcr.io/${{ github.repository }}/app:latest
-          docker tag app_app:latest $IMAGE_NAME
+          docker tag app:latest $IMAGE_NAME
           docker push $IMAGE_NAME
 
-      - name: Deploy to server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-          scp -i ~/.ssh/id_ed25519 docker-compose.yml $SSH_USERNAME@$SERVER_IP:~/deployed_apps/app
-          ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
-            cd ~/deployed_apps/app
-            docker compose pull
-            docker compose up -d
-          EOF
+      # - name: Deploy to server
+      #   env:
+      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     SERVER_IP: ${{ secrets.SERVER_IP }}
+      #     SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+      #     chmod 600 ~/.ssh/id_ed25519
+      #     ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+      #     ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+      #       docker pull
+      #     EOF
