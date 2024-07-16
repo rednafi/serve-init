@@ -65,8 +65,8 @@ jobs:
         run: |
           APP_IMAGE_NAME=ghcr.io/${{ github.repository }}/app:latest
           CADDY_IMAGE_NAME=ghcr.io/${{ github.repository }}/caddy:latest
-          docker tag app_app:latest $APP_IMAGE_NAME
-          docker tag caddy2-alpine:latest $CADDY_IMAGE_NAME
+          docker tag app-app:latest $APP_IMAGE_NAME
+          docker tag app-caddy:latest $CADDY_IMAGE_NAME
           docker push $APP_IMAGE_NAME
           docker push $CADDY_IMAGE_NAME
           
