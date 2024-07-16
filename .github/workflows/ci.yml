@@ -13,6 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Uncomment and update the following steps if necessary
       # - name: Set up Go
       #   uses: actions/setup-go@v5
       #   with:
@@ -26,7 +27,6 @@ jobs:
       #       echo "Go code is not formatted. Please run 'go fmt' on the following files:"
       #       echo "$fmt_results"
       #       exit 1
-      #     fi
 
       # - name: Run Tests
       #   run: |
@@ -56,29 +56,40 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Docker images
-        run: |
-          cd app
-          docker compose -f docker-compose.yml build
+        run: docker compose -f docker-compose.yml build
 
       - name: List Docker images
         run: docker images
 
       - name: Tag and push Docker images
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository }}/app:latest
-          docker tag app:latest $IMAGE_NAME
-          docker push $IMAGE_NAME
+          APP_IMAGE_NAME=ghcr.io/${{ github.repository }}/app:latest
+          CADDY_IMAGE_NAME=ghcr.io/${{ github.repository }}/caddy:latest
+          docker tag app:latest $APP_IMAGE_NAME
+          docker tag caddy:latest $CADDY_IMAGE_NAME
+          docker push $APP_IMAGE_NAME
+          docker push $CADDY_IMAGE_NAME
 
-      # - name: Deploy to server
-      #   env:
-      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     SERVER_IP: ${{ secrets.SERVER_IP }}
-      #     SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-      #   run: |
-      #     mkdir -p ~/.ssh
-      #     echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-      #     chmod 600 ~/.ssh/id_ed25519
-      #     ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-      #     ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
-      #       docker pull
-      #     EOF
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          REPO_URL: ${{ secrets.REPO_URL }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+            if [ ! -d "~/deployed_apps/app" ]; then
+              git clone $REPO_URL ~/deployed_apps/app
+              cd ~/deployed_apps/app
+            else
+              cd ~/deployed_apps/app
+              git pull
+            fi
+            docker pull $APP_IMAGE_NAME
+            docker pull $CADDY_IMAGE_NAME
+            docker compose -f docker-compose.yml up -d
+          EOF

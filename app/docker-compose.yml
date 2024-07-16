@@ -7,18 +7,16 @@ services:
       dockerfile: Dockerfile
     networks:
       - app-network
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
 
   caddy:
-    build:
-      context: .
-      dockerfile: Dockerfile.caddy
+    image: caddy2-alpine
     ports:
       - "80:80"
       - "443:443"
-    networks:
-      - app-network
-    depends_on:
-      - app
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
 
 networks:
   app-network:

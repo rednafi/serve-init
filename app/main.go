@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -39,7 +40,18 @@ var facts = CatFacts{
 }
 
 func main() {
+	authToken := os.Getenv("AUTH_TOKEN")
+	if authToken == "" {
+		log.Fatalf("AUTH_TOKEN is not set in the environment")
+	}
+
 	http.HandleFunc("/catfacts", func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		if token != "Token "+authToken {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(facts); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
