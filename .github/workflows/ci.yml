@@ -19,13 +19,7 @@ jobs:
           go-version: 1.22
 
       - name: Check go fmt
-        run: |
-          cd app
-          fmt_results=$(gofmt -l .)
-          if [ -n "$fmt_results" ]; then
-            echo "Go code is not formatted. Please run 'go fmt' on the following files:"
-            echo "$fmt_results"
-            exit 1
+        run: cd app && gofmt -l . | tee fmt.log && test -z "$(cat fmt.log)"
 
       - name: Run Tests
         run: |
