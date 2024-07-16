@@ -80,18 +80,19 @@ jobs:
           REPO_URL: ${{ secrets.REPO_URL }}
           APP_IMAGE_NAME: ghcr.io/${{ github.repository }}/app:latest
           CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
-            if [ ! -d "~/deployed_apps/app" ]; then
-              git clone $REPO_URL ~/deployed_apps/app
-            fi
-            cd ~/deployed_apps/app
-            git pull
-            docker pull $APP_IMAGE_NAME
-            docker pull $CADDY_IMAGE_NAME
-            docker compose -f docker-compose.yml up -d
-          EOF
+
+       run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+          if [ ! -d "~/deployed_apps/app" ]; then
+            git clone $REPO_URL ~/deployed_apps/app
+          fi
+          cd ~/deployed_apps/app
+          git pull
+          docker pull $APP_IMAGE_NAME
+          docker pull $CADDY_IMAGE_NAME
+          docker compose -f docker-compose.yml up -d
+        EOF
