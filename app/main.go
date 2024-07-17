@@ -47,10 +47,13 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
+
+		// Send error in JSON format
 		if token != "Token "+authToken {
 			http.Error(
 				w,
-				"Unauthorized. Please send the correct token via HTTP Authorization header",
+				"Unauthorized. Please send the expected HTTP authorization header.\n"+
+					"The expected format is 'Authorization: Token <token>'",
 				http.StatusUnauthorized,
 			)
 			return

@@ -9,9 +9,9 @@ import (
 	"unicode/utf8"
 )
 
-// TestHandler tests the /catfacts endpoint
+// TestHandler tests the / endpoint
 func TestHandler(t *testing.T) {
-	req, err := http.NewRequest("GET", "/catfacts", nil)
+	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
