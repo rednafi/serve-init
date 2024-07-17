@@ -79,18 +79,14 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
-            if [ ! -d "~/deployed_apps/app" ]; then
+            if [ ! -d "~/deployed_apps/app" ] || [ ! -d "~/deployed_apps/app/.git" ]; then
+              rm -rf ~/deployed_apps/app
               mkdir -p ~/deployed_apps/app
               git clone $REPO_URL ~/deployed_apps/app
             fi
-
-            if [ -d "~/deployed_apps/app/.git" ]; then
-              cd ~/deployed_apps/app
-              git pull
-              docker pull $APP_IMAGE_NAME
-              docker pull $CADDY_IMAGE_NAME
-              docker compose -f docker-compose.yml up -d
-            else
-              echo "Directory ~/deployed_apps/app exists but is not a valid git repository."
-            fi
+            cd ~/deployed_apps/app
+            git pull
+            docker pull $APP_IMAGE_NAME
+            docker pull $CADDY_IMAGE_NAME
+            docker compose -f docker-compose.yml up -d
           EOF
