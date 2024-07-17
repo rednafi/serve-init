@@ -70,8 +70,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_ed25519
-            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-            ssh-keyscan -H $SSH_HOST > ~/.ssh/known_hosts
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          ssh-keyscan -H $SSH_HOST > ~/.ssh/known_hosts
 
       - name: Connect to remote machine and pull
         env:
@@ -83,9 +83,10 @@ jobs:
           GH_USER: ${{ github.actor }}
           GH_REPO: $${{ github.repository}}
         run: |
+          set -e 
           ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
             rm -rf $WORK_DIR
-            git clone https://$GH_TOKEN@$GH_SERVER_URL/$GH_USER/$GH_REPO.git $WORK_DIR
+            git clone $GH_TOKEN@$GH_SERVER_URL$GH_USER$GH_REPO.git $WORK_DIR
             cd $WORK_DIR/app
             docker compose pull
             docker compose up -d
