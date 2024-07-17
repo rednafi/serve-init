@@ -74,6 +74,7 @@ jobs:
           CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          APP_DIR: "/home/${{ secrets.SSH_USERNAME }}/deployed_apps/app"
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
@@ -83,8 +84,6 @@ jobs:
 
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << EOF
             set -e
-
-            APP_DIR="/home/$SSH_USERNAME/deployed_apps/app"
 
             echo "Running commands on remote server"
             echo "SSH_USERNAME: $SSH_USERNAME"
