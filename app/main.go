@@ -45,7 +45,7 @@ func main() {
 		log.Fatalf("AUTH_TOKEN is not set in the environment")
 	}
 
-	http.HandleFunc("/catfacts", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		if token != "Token "+authToken {
 			http.Error(
