@@ -80,17 +80,16 @@ jobs:
 
           ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
 
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << EOF
             set -e
+
+            APP_DIR="/home/$SSH_USERNAME/deployed_apps/app"
 
             echo "Running commands on remote server"
             echo "SSH_USERNAME: $SSH_USERNAME"
             echo "REPO_URL: $REPO_URL"
             echo "APP_IMAGE_NAME: $APP_IMAGE_NAME"
             echo "CADDY_IMAGE_NAME: $CADDY_IMAGE_NAME"
-
-            APP_DIR="/home/$SSH_USERNAME/deployed_apps/app"
-
             echo "APP_DIR: $APP_DIR"
 
             # Ensure the directory is removed if it exists
