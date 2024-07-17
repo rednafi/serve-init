@@ -83,13 +83,13 @@ jobs:
           GH_USER: ${{ github.actor }}
           GH_REPO: $${{ github.repository}}
         run: |
-          ssh $SSH_USER@$SSH_HOST <<EOF
-          rm -rf $WORK_DIR
-          git clone $GH_SERVER_URL/$GH_USER/$GH_REPO.git $WORK_DIR
-          cd $WORK_DIR/app
-          docker compose pull
-          docker compose up -d
-          exit
-
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
+            rm -rf $WORK_DIR
+            git clone https://$GH_TOKEN@$GH_SERVER_URL/$GH_USER/$GH_REPO.git $WORK_DIR
+            cd $WORK_DIR/app
+            docker compose pull
+            docker compose up -d
+            exit
+          EOF
       - name: Remove ssh directory
         run: rm -rf ~/.ssh
