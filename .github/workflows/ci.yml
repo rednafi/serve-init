@@ -83,8 +83,8 @@ jobs:
           GH_USER: ${{ github.actor }}
           GH_REPO: $${{ github.repository}}
         run: |
-          set -e 
           ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
+            set -e
             rm -rf $WORK_DIR
             git clone $GH_TOKEN@$GH_SERVER_URL$GH_USER$GH_REPO.git $WORK_DIR
             cd $WORK_DIR/app
