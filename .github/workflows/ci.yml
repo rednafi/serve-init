@@ -73,7 +73,7 @@ jobs:
           APP_IMAGE_NAME: ghcr.io/${{ github.repository }}/app:latest
           CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
-          APP_DIR: "/home/${{ secrets.SSH_USERNAME }}/deployed_apps/app"
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
@@ -82,7 +82,9 @@ jobs:
           ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
 
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << EOF
-            set -e pipefail
+            set -e
+
+            APP_DIR="/home/$SSH_USERNAME/deployed_apps/app"
 
             echo "Running commands on remote server"
             echo "SSH_USERNAME: $SSH_USERNAME"
@@ -108,6 +110,13 @@ jobs:
             # Pull the latest changes
             echo "Pulling latest changes from repository"
             git pull
+
+            # Log in to GitHub Container Registry
+            echo "Logging into GitHub Container Registry"
+            echo "$GHCR_PAT" | docker login ghcr.io -u $SSH_USERNAME --password-stdin
+
+            # Verify Docker login status
+            docker info | grep -i "username"
 
             # Pull Docker images
             echo "Pulling Docker image $APP_IMAGE_NAME"
