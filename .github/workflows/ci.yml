@@ -73,7 +73,7 @@ jobs:
           APP_IMAGE_NAME: ghcr.io/${{ github.repository }}/app:latest
           CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
-          APP_DIR: "/home/$SSH_USERNAME/deployed_apps/app"
+          APP_DIR: "/home/${{ secrets.SSH_USERNAME }}/deployed_apps/app"
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
