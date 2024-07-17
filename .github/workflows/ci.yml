@@ -64,25 +64,21 @@ jobs:
           docker push $APP_IMAGE_NAME
           docker push $CADDY_IMAGE_NAME
 
-      - name: Install ssh keys in the ci
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-        run: |
-          install -m 600 -D /dev/null ~/.ssh/github_actions_ci_id_ed25519
-            echo $SSH_PRIVATE_KEY > ~/.ssh/github_actions_ci_id_ed25519
-            ssh-keyscan -H $SSH_HOST > ~/.ssh/known_hosts
-
       - name: Connect to remote machine and pull
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           WORK_DIR: ${{ secrets.WORK_DIR }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_SERVER_URL: ${{ github.server_url }}
           GH_USER: ${{ github.actor }}
           GH_REPO: $${{ github.repository}}
         run: |
+          install -m 600 -D /dev/null ~/.ssh/id_ed25519
+            echo $SSH_PRIVATE_KEY > ~/.ssh/id_ed25519
+            ssh-keyscan -H $SSH_HOST > ~/.ssh/known_hosts
+
           ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
             rm -rf $WORK_DIR
             git clone https://$GH_TOKEN@$GH_SERVER_URL/$GH_USER/$GH_REPO.git $WORK_DIR
