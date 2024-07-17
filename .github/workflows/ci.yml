@@ -69,8 +69,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
-          install -m 600 -D /dev/null ~/.ssh/id_rsa
-            echo $SSH_PRIVATE_KEY > ~/.ssh/id_rsa
+          install -m 600 -D /dev/null ~/.ssh/id_ed25519
+            echo $SSH_PRIVATE_KEY > ~/.ssh/id_ed25519
             ssh-keyscan -H $SSH_HOST > ~/.ssh/known_hosts
 
       - name: Connect to remote machine and pull
@@ -78,5 +78,18 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           WORK_DIR: ${{ secrets.WORK_DIR }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_SERVER_URL: ${{ github.server_url }}
+          GH_USER: ${{ github.actor }}
+          GH_REPO: $${{ github.repository}}
         run: |
-          ssh $SSH_USER@$SSH_HOST "cd $WORK_DIR && docker compose pull && docker compose up -d && exit"
+          ssh $SSH_USER@$SSH_HOST <<EOF
+          rm -rf $WORK_DIR
+          git clone $GH_SERVER_URL/$GH_USER/$GH_REPO.git $WORK_DIR
+          cd $WORK_DIR/app
+          docker compose pull
+          docker compose up -d
+          exit
+
+      - name: Remove ssh directory
+        run: rm -rf ~/.ssh
