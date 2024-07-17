@@ -82,7 +82,7 @@ jobs:
           ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
 
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << EOF
-            set -euo pipefail
+            set -e pipefail
 
             echo "Running commands on remote server"
             echo "SSH_USERNAME: $SSH_USERNAME"
