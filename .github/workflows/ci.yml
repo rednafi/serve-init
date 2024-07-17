@@ -44,15 +44,15 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Log in to github container registry
-        run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GHCR_PAT }}
+        env:
+          GH_USER: ${{ github.actor }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: docker login ghcr.io -u $GH_USER -p $GH_TOKEN
 
       - name: Build docker images
         env:
           AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
         run: docker compose -f app/docker-compose.yml build
-
-      - name: List docker images
-        run: docker images
 
       - name: Tag and push docker images
         env:
