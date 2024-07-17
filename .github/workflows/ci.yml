@@ -83,14 +83,24 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
             APP_DIR="/home/$SSH_USERNAME/deployed_apps/app"
 
+            # Ensure the directory is removed if it exists
             if [ -d "$APP_DIR" ]; then
               rm -rf "$APP_DIR"
             fi
 
+            # Clone the repository
             git clone $REPO_URL "$APP_DIR"
+
+            # Change to the app directory
             cd "$APP_DIR"
+
+            # Pull the latest changes
             git pull
+
+            # Pull Docker images
             docker pull $APP_IMAGE_NAME
             docker pull $CADDY_IMAGE_NAME
+
+            # Start Docker Compose
             docker compose -f docker-compose.yml up -d
           EOF
