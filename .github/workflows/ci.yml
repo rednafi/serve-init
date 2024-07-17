@@ -72,7 +72,7 @@ jobs:
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
           APP_IMAGE_NAME: ghcr.io/${{ github.repository }}/app:latest
           CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
-          REPO_URL: ${{ github.server_url }}/{{ github.repository }}.git
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
