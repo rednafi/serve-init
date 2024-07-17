@@ -88,9 +88,10 @@ jobs:
             rm -rf $WORK_DIR
             git clone https://$GH_TOKEN@github.com/$GH_USER/$GH_REPO.git $WORK_DIR
             cd $WORK_DIR/app
-            docker compose pull
+            docker-compose down --rmi all --volumes --remove-orphans || true
+            export AUTH_TOKEN=$AUTH_TOKEN
             docker compose up -d
-            exit
           EOF
+          exit 0
       - name: Remove ssh directory
         run: rm -rf ~/.ssh

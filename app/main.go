@@ -48,7 +48,11 @@ func main() {
 	http.HandleFunc("/catfacts", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		if token != "Token "+authToken {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(
+				w,
+				"Unauthorized. Please send the correct token via HTTP Authorization header",
+				http.StatusUnauthorized,
+			)
 			return
 		}
 
