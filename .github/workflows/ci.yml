@@ -80,27 +80,44 @@ jobs:
 
           ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
 
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << EOF
+            set -e
+
+            echo "Running commands on remote server"
+            echo "SSH_USERNAME: $SSH_USERNAME"
+            echo "REPO_URL: $REPO_URL"
+            echo "APP_IMAGE_NAME: $APP_IMAGE_NAME"
+            echo "CADDY_IMAGE_NAME: $CADDY_IMAGE_NAME"
+
             APP_DIR="/home/$SSH_USERNAME/deployed_apps/app"
+
+            echo "APP_DIR: $APP_DIR"
 
             # Ensure the directory is removed if it exists
             if [ -d "$APP_DIR" ]; then
+              echo "Removing existing directory $APP_DIR"
               rm -rf "$APP_DIR"
             fi
 
             # Clone the repository
+            echo "Cloning repository $REPO_URL into $APP_DIR"
             git clone $REPO_URL "$APP_DIR"
 
             # Change to the app directory
             cd "$APP_DIR"
+            echo "Changed to directory $APP_DIR"
 
             # Pull the latest changes
+            echo "Pulling latest changes from repository"
             git pull
 
             # Pull Docker images
+            echo "Pulling Docker image $APP_IMAGE_NAME"
             docker pull $APP_IMAGE_NAME
+            echo "Pulling Docker image $CADDY_IMAGE_NAME"
             docker pull $CADDY_IMAGE_NAME
 
             # Start Docker Compose
+            echo "Starting Docker Compose"
             docker compose -f docker-compose.yml up -d
           EOF
