@@ -76,14 +76,24 @@ jobs:
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
           APP_DIR: "/home/${{ secrets.SSH_USERNAME }}/deployed_apps/app"
         run: |
+         set -e
+          trap 'catch' ERR
+
+          function catch {
+            echo "Error occurred at line $LINENO. Exiting."
+          }
+
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
           ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
 
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << EOF
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << 'EOF'
             set -e
+            trap 'echo "Error on line $LINENO"; exit 1' ERR
+
+            APP_DIR="/home/$SSH_USERNAME/deployed_apps/app"
 
             echo "Running commands on remote server"
             echo "SSH_USERNAME: $SSH_USERNAME"
