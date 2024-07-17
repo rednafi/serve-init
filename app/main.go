@@ -31,7 +31,8 @@ func generateRef() string {
 
 var facts = CatFacts{
 	Facts: []CatFact{
-		{FactNo: 1, Ref: generateRef(), Fact: "Cats have five toes on their front paws, but only four toes on their back paws."},
+		{FactNo: 1, Ref: generateRef(), Fact: `Cats have five toes on their front paws, but only
+four toes on their back paws.`},
 		{FactNo: 2, Ref: generateRef(), Fact: "A group of cats is called a clowder."},
 		{FactNo: 3, Ref: generateRef(), Fact: "Cats can rotate their ears 180 degrees."},
 		{FactNo: 4, Ref: generateRef(), Fact: "The oldest cat on record lived to be 38 years old."},
