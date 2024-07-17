@@ -82,6 +82,7 @@ jobs:
           GH_SERVER_URL: ${{ github.server_url }}
           GH_USER: ${{ github.actor }}
           GH_REPO: $${{ github.repository}}
+          APP_AUTH_TOKEN: $${{ secrets.APP_AUTH_TOKEN }}
         run: |
           ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
             set -e
@@ -89,7 +90,7 @@ jobs:
             git clone https://$GH_TOKEN@github.com/$GH_USER/$GH_REPO.git $WORK_DIR
             cd $WORK_DIR/app
             docker-compose down --rmi all --volumes --remove-orphans || true
-            export AUTH_TOKEN=$AUTH_TOKEN
+            export AUTH_TOKEN=$APP_AUTH_TOKEN
             docker compose up -d
           EOF
           exit 0
