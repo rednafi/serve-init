@@ -6,9 +6,8 @@ on:
       - main
 
 jobs:
-  lint-and-test:
+  test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,12 +20,12 @@ jobs:
       - name: Check go fmt
         run: cd app && gofmt -l . | tee fmt.log && test -z "$(cat fmt.log)"
 
-      - name: Run Tests
+      - name: Run tests
         run: |
           cd app
           go test ./...
 
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     needs: lint-and-test
 
@@ -46,7 +45,7 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: docker login ghcr.io -u ${{ github.actor }} - ${{ secrets.GHCR_PAT }}
 
       - name: Build Docker images
         env:
@@ -65,65 +64,14 @@ jobs:
           docker push $APP_IMAGE_NAME
           docker push $CADDY_IMAGE_NAME
 
-      - name: Deploy to server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-          APP_IMAGE_NAME: ghcr.io/${{ github.repository }}/app:latest
-          CADDY_IMAGE_NAME: ghcr.io/${{ github.repository }}/caddy:latest
-          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
-          GHCR_PAT: ${{ secrets.GHCR_PAT }}
-          APP_DIR: "/home/${{ secrets.SSH_USERNAME }}/deployed_apps/app"
+      - name: Install SSH keys in the CI
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
 
-          ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 $SSH_USERNAME@$SERVER_IP << EOF
-            set -e
-
-            echo "Running commands on remote server"
-            echo "SSH_USERNAME: $SSH_USERNAME"
-            echo "REPO_URL: $REPO_URL"
-            echo "APP_IMAGE_NAME: $APP_IMAGE_NAME"
-            echo "CADDY_IMAGE_NAME: $CADDY_IMAGE_NAME"
-            echo "APP_DIR: $APP_DIR"
-
-            # Ensure the directory is removed if it exists
-            if [ -d "$APP_DIR" ]; then
-              echo "Removing existing directory $APP_DIR"
-              rm -rf "$APP_DIR"
-            fi
-
-            # Clone the repository
-            echo "Cloning repository $REPO_URL into $APP_DIR"
-            git clone $REPO_URL "$APP_DIR"
-
-            # Change to the app directory
-            cd "$APP_DIR"
-            echo "Changed to directory $APP_DIR"
-
-            # Pull the latest changes
-            echo "Pulling latest changes from repository"
-            git pull
-
-            # Log in to GitHub Container Registry
-            echo "Logging into GitHub Container Registry"
-            echo "$GHCR_PAT" | docker login ghcr.io -u $SSH_USERNAME --password-stdin
-
-            # Verify Docker login status
-            docker info | grep -i "username"
-
-            # Pull Docker images
-            echo "Pulling Docker image $APP_IMAGE_NAME"
-            docker pull $APP_IMAGE_NAME
-            echo "Pulling Docker image $CADDY_IMAGE_NAME"
-            docker pull $CADDY_IMAGE_NAME
-
-            # Start Docker Compose
-            echo "Starting Docker Compose"
-            docker compose -f docker-compose.yml up -d
-          EOF
+      - name: Connect to remote machine and pull
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && docker compose pull && docker compose up -d && exit"
+        - name: cleanup
+          run: rm -rf ~/.ssh
