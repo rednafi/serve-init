@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   app:
     build:
@@ -22,7 +21,10 @@ services:
       - app-network
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ~/caddy_data:/data
+
+      # This is required for certificated to be stored. ~/caddy/<app_name> is the directory
+      # for each application. We don't want to lose the certificates when we redeploy.
+      - ~/caddy/app:/data
 
 networks:
   app-network:
