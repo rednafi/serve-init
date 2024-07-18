@@ -88,13 +88,13 @@ jobs:
             set -e
 
             # Start by removing existing work directory in the remote server
-            rm -rf $WORK_DIR
+            rm -rf \$WORK_DIR
 
             # Clone the repo in the remote server
-            git clone https://$GH_TOKEN@github.com/$GH_USER/$GH_REPO.git $WORK_DIR
+            git clone https://\$GH_TOKEN@github.com/\$GH_USER/\$GH_REPO.git \$WORK_DIR
 
             # Go to the directory where the docker-compose.yml lives
-            cd $WORK_DIR/app
+            cd \$WORK_DIR/app
 
             # Wind everything down and clean up all the containers associated with this file
             docker-compose down --rmi all --volumes --remove-orphans || true
@@ -103,10 +103,13 @@ jobs:
             docker rmi -f $(docker compose images -q) || true
 
             # Prune orphan images and volumes
-            docker system prune -f --volumes
+            docker system prune -a -f --volumes
 
             # Export environment variables required to run the app
-            export AUTH_TOKEN=$APP_AUTH_TOKEN && docker compose up -d --build
+            export AUTH_TOKEN=\${APP_AUTH_TOKEN}
+
+            # Spin up the containers
+            docker compose up -d --build
           EOF
           exit 0
       - name: Remove ssh directory
