@@ -100,7 +100,7 @@ jobs:
             docker-compose down --rmi all --volumes --remove-orphans || true
 
             # Sometimes images don't go away
-            docker rmi -f $(docker compose images -q)    
+            docker rmi -f $(docker compose images -q) || true
 
             # Export environment variables required to run the app
             export AUTH_TOKEN=$APP_AUTH_TOKEN
