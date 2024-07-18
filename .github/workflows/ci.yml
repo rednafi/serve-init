@@ -99,19 +99,19 @@ jobs:
             docker-compose down --rmi all --volumes --remove-orphans || true
 
             # Sometimes images don't go away
-            docker rmi -f \$(docker compose images -q) || true
+            docker rmi -f \$(docker-compose images -q) || true
 
             # Prune orphan images and volumes
             docker system prune -a -f --volumes
 
-            # Export environment variables required to run the app
-            export AUTH_TOKEN=${APP_AUTH_TOKEN}
+            # Create an .env file with the required environment variable
+            echo "AUTH_TOKEN=${APP_AUTH_TOKEN}" > .env
 
             # Echo the value of AUTH_TOKEN to verify
-            echo "AUTH_TOKEN is: \$AUTH_TOKEN"
+            echo "AUTH_TOKEN is: \$(cat .env)"
 
-            # Spin up the containers with the AUTH_TOKEN environment variable
-            AUTH_TOKEN=\$AUTH_TOKEN docker-compose up -d --build
+            # Spin up the containers with the environment variable from the .env file
+            docker-compose up -d --build
           EOF
 
       - name: Remove ssh directory
