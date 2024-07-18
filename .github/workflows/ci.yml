@@ -80,7 +80,6 @@ jobs:
           WORK_DIR: ${{ secrets.WORK_DIR }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_SERVER_URL: ${{ github.server_url }}
-          GH_USER: ${{ github.actor }}
           GH_REPO: ${{ github.repository}}
           APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN }}
         run: |
@@ -91,7 +90,7 @@ jobs:
             rm -rf $WORK_DIR
 
             # Clone the repo in the remote server
-            git clone https://$GH_TOKEN@github.com/$GH_USER/$GH_REPO.git $WORK_DIR
+            git clone https://$GH_TOKEN@github.com/$GH_REPO.git $WORK_DIR
 
             # Go to the directory where the docker-compose.yml lives
             cd $WORK_DIR/app
