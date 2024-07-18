@@ -96,10 +96,10 @@ jobs:
             cd $WORK_DIR/app
 
             # Wind everything down and clean up all the containers associated with this file
-            docker-compose down --rmi all --volumes --remove-orphans || true
+            docker compose down --rmi all --volumes --remove-orphans || true
 
             # Sometimes images don't go away
-            docker rmi -f \$(docker-compose images -q) || true
+            docker rmi -f \$(docker compose images -q) || true
 
             # Prune orphan images and volumes
             docker system prune -a -f --volumes
@@ -111,7 +111,7 @@ jobs:
             echo "AUTH_TOKEN is: \$(cat .env)"
 
             # Spin up the containers with the environment variable from the .env file
-            docker-compose up -d --build
+            docker compose up -d --build
           EOF
 
       - name: Remove ssh directory
