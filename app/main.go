@@ -24,8 +24,11 @@ type ErrorResponse struct {
 
 var facts = catFacts{
 	Facts: []catFact{
-		{FactNo: 1, Fact: `Cats have five toes on their front paws, but only
-four toes on their back paws.`},
+		{
+			FactNo: 1,
+			Fact: ("Cats have five toes on their front paws, " +
+				"but only four toes on their back paws."),
+		},
 		{FactNo: 2, Fact: "A group of cats is called a clowder."},
 		{FactNo: 3, Fact: "Cats can rotate their ears 180 degrees."},
 		{FactNo: 4, Fact: "The oldest cat on record lived to be 38 years old."},
