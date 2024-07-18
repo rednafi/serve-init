@@ -43,9 +43,9 @@ func catFactsHandler(authToken string) http.HandlerFunc {
 
 		if token != "Token "+authToken {
 			errorResponse := ErrorResponse{
-				Type:    "error",
+				Type: "error",
 				Message: "Unauthorized. Please send the expected HTTP authorization header." +
-				" The expected format is 'Authorization: Token token_value",
+					" The expected format is 'Authorization: Token token_value",
 			}
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(errorResponse)
