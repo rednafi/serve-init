@@ -102,14 +102,11 @@ jobs:
             # Sometimes images don't go away
             docker rmi -f $(docker compose images -q) || true
 
-            # Export environment variables required to run the app
-            export AUTH_TOKEN=$APP_AUTH_TOKEN
-
             # Prune orphan images and volumes
             docker system prune -f --volumes
 
-            # Spin up all the containers
-            docker compose up -d --build
+            # Export environment variables required to run the app
+            export AUTH_TOKEN=$APP_AUTH_TOKEN && docker compose up -d --build
           EOF
           exit 0
       - name: Remove ssh directory
