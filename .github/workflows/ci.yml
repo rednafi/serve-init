@@ -81,8 +81,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_SERVER_URL: ${{ github.server_url }}
           GH_USER: ${{ github.actor }}
-          GH_REPO: $${{ github.repository}}
-          APP_AUTH_TOKEN: $${{ secrets.APP_AUTH_TOKEN }}
+          GH_REPO: ${{ github.repository}}
+          APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN }}
         run: |
           ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
             set -e
@@ -107,6 +107,8 @@ jobs:
 
             # Export environment variables required to run the app
             export AUTH_TOKEN=$APP_AUTH_TOKEN
+
+            echo
 
             # Spin up the containers
             docker compose up -d --build
