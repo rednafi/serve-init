@@ -1,3 +1,7 @@
+{
+    acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
 catfacts.z.rednafi.com {
     reverse_proxy app:8080
 }
