@@ -105,6 +105,9 @@ jobs:
             # Export environment variables required to run the app
             export AUTH_TOKEN=$APP_AUTH_TOKEN
 
+            # Prune orphan images and volumes
+            docker system prune -f --volumes
+
             # Spin up all the containers
             docker compose up -d --build
           EOF
