@@ -105,7 +105,13 @@ jobs:
             docker system prune -a -f --volumes
 
             # Export environment variables required to run the app
-            AUTH_TOKEN=$APP_AUTH_TOKEN docker compose up -d --build
+            export AUTH_TOKEN=${APP_AUTH_TOKEN}
+
+            # Echo the value of AUTH_TOKEN to verify
+            echo "AUTH_TOKEN is: \$AUTH_TOKEN"
+
+            # Spin up the containers with the AUTH_TOKEN environment variable
+            AUTH_TOKEN=\$AUTH_TOKEN docker-compose up -d --build
           EOF
 
       - name: Remove ssh directory
