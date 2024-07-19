@@ -83,6 +83,8 @@ jobs:
           GH_REPO: ${{ github.repository}}
           APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN }}
         run: |
+          export AUTH_TOKEN=$APP_AUTH_TOKEN
+
           ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
             set -e
 
@@ -103,12 +105,6 @@ jobs:
 
             # Prune orphan images and volumes
             docker system prune -a -f --volumes
-
-            # Create an .env file with the required environment variable
-            echo "AUTH_TOKEN=${APP_AUTH_TOKEN}" > .env
-
-            # Echo the value of AUTH_TOKEN to verify
-            echo "AUTH_TOKEN is: \$(cat .env)"
 
             # Spin up the containers with the environment variable from the .env file
             docker compose up -d --build

@@ -1,88 +1,52 @@
----
-# Play 1: Add current user's SSH to the servers
-- name: Add current user's SSH to servers
-  hosts: servers
-  become: yes
+- name: Local SSH key verification and creation
+  hosts: localhost
+  gather_facts: no
   vars:
-    ssh_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_ed25519.pub') }}"
-    user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
-    ssh_dir: "/home/{{ user }}/.ssh"
-    authorized_keys_path: "/home/{{ user }}/.ssh/authorized_keys"
+    ssh_key_private: "{{ lookup('env','HOME') + '/.ssh/id_ed25519' }}"
+    ssh_key_public: "{{ lookup('env','HOME') + '/.ssh/id_ed25519.pub' }}"
 
   tasks:
-    - name: Ensure user exists
-      user:
-        name: "{{ user }}"
-        state: present
-      become: yes
+    - name: Check if ed25519 SSH key exists locally
+      ansible.builtin.stat:
+        path: "{{ ssh_key_public }}"
+        follow: yes
+      register: ssh_key
 
-    - name: Ensure .ssh directory exists
-      file:
-        path: "{{ ssh_dir }}"
+    - name: Inform if SSH key does not exist
+      ansible.builtin.debug:
+        msg: "No ed25519 SSH key found, consider creating one."
+      when: not ssh_key.stat.exists
+
+    - name: Prompt to create SSH key if not present
+      pause:
+        prompt: "No ed25519 SSH key found. Do you want to create one? (yes/no)"
+      register: user_input
+      when: not ssh_key.stat.exists
+
+    - name: Generate ed25519 SSH key
+      ansible.builtin.command:
+        cmd: "ssh-keygen -t ed25519 -f {{ ssh_key_private }} -N ''"
+      when: user_input.user_input | lower == 'yes'
+
+- name: Transfer local SSH key to remote hosts
+  hosts: all
+  become: true
+  vars:
+    username: ubuntu
+    ssh_key_public: "{{ lookup('env','HOME') + '/.ssh/id_ed25519.pub' }}"
+
+  tasks:
+    - name: Ensure .ssh directory exists on remote
+      ansible.builtin.file:
+        path: "/home/{{ username }}/.ssh"
         state: directory
-        mode: "0700"
-        owner: "{{ user }}"
-        group: "{{ user }}"
-      become: yes
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0700'
 
-    - name: Add SSH key to authorized_keys
-      authorized_key:
-        user: "{{ user }}"
+    - name: Add local SSH key to remote user
+      ansible.posix.authorized_key:
+        user: "{{ username }}"
         state: present
-        key: "{{ ssh_key }}"
-      become: yes
-
-# Play 2: Create a new pair of SSH key pairs for CI
-- name: Create CI SSH key pair
-  hosts: servers
-  become: yes
-  vars:
-    ssh_key_name: "github_actions_ci_id_ed25519"
-    user: "{{ ansible_user | default(lookup('env', 'USER')) }}"
-    ssh_key_path: "/home/{{ user }}/.ssh/{{ ssh_key_name }}"
-    ssh_private_key_permissions: "0600"
-    ssh_public_key_path: "{{ ssh_key_path }}.pub"
-
-  tasks:
-    - name: Generate new CI Ed25519 key pair
-      openssh_keypair:
-        path: "{{ ssh_key_path }}"
-        type: ed25519
-        force: yes
-      become: yes
-      become_user: "{{ user }}"
-
-    - name: Ensure the CI public key file exists
-      stat:
-        path: "{{ ssh_public_key_path }}"
-      register: ssh_pubkey_stat
-
-    - name: Wait for the CI public key file to be created
-      wait_for:
-        path: "{{ ssh_public_key_path }}"
-        timeout: 30
-      when: not ssh_pubkey_stat.stat.exists
-
-    - name: Set permissions on the CI private key
-      file:
-        path: "{{ ssh_key_path }}"
-        mode: "{{ ssh_private_key_permissions }}"
-        owner: "{{ user }}"
-        group: "{{ user }}"
-      become: yes
-
-    - name: Delay to ensure file system synchronization
-      wait_for:
-        timeout: 5
-
-    - name: Read CI public key file contents
-      command: cat {{ ssh_public_key_path }}
-      register: ci_pubkey_contents
-      become: yes
-
-    - name: Add CI public key to authorized_keys
-      authorized_key:
-        user: "{{ user }}"
-        state: present
-        key: "{{ ci_pubkey_contents.stdout }}"
-      become: yes
+        key: "{{ lookup('file', ssh_key_public) }}"
+        exclusive: no
