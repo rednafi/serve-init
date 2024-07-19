@@ -99,10 +99,10 @@ jobs:
             docker compose down --rmi all --volumes --remove-orphans || true
 
             # Sometimes images don't go away
-            docker rmi -f $(docker compose images -q) || true
+            docker rmi -f \$(docker compose images -q) || true
 
             # Export environment variables
-            export AUTH_TOKEN=$
+            export AUTH_TOKEN=$APP_AUTH_TOKEN
 
             # Spin up the containers with the environment variable from the .env file
             docker compose up -d --build
