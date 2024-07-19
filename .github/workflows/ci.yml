@@ -73,7 +73,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           ssh-keyscan -H $SSH_HOST > ~/.ssh/known_hosts
 
-      - name: Connect to remote machine and pull
+      - name: Connect to remote machine, pull, and start the service
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -83,32 +83,33 @@ jobs:
           GH_REPO: ${{ github.repository}}
           APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN }}
         run: |
+          SCRIPT="
+          set -e
+
+          # Start by removing existing work directory in the remote server
+          rm -rf $WORK_DIR
+
+          # Clone the repo in the remote server
+          git clone https://$GH_TOKEN@github.com/$GH_REPO.git $WORK_DIR
+
+          # Go to the directory where the docker-compose.yml lives
+          cd $WORK_DIR/app
+
+          # Wind everything down and clean up all the containers associated with this file
+          docker compose down --rmi all --volumes --remove-orphans || true
+
+          # Sometimes images don't go away
+          docker rmi -f $(docker compose images -q) || true
+
+          # Export environment variables
           export AUTH_TOKEN=$APP_AUTH_TOKEN
 
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
-            set -e
+          # Spin up the containers with the environment variable from the .env file
+          docker compose up -d --build
+          "
 
-            # Start by removing existing work directory in the remote server
-            rm -rf $WORK_DIR
-
-            # Clone the repo in the remote server
-            git clone https://$GH_TOKEN@github.com/$GH_REPO.git $WORK_DIR
-
-            # Go to the directory where the docker-compose.yml lives
-            cd $WORK_DIR/app
-
-            # Wind everything down and clean up all the containers associated with this file
-            docker compose down --rmi all --volumes --remove-orphans || true
-
-            # Sometimes images don't go away
-            docker rmi -f \$(docker compose images -q) || true
-
-            # Prune orphan images and volumes
-            docker system prune -a -f --volumes
-
-            # Spin up the containers with the environment variable from the .env file
-            docker compose up -d --build
-          EOF
+          # Run on the remote machine
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "$SCRIPT"
 
       - name: Remove ssh directory
         run: rm -rf ~/.ssh
