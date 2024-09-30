@@ -10,9 +10,9 @@ import (
 
 func TestMain(m *testing.M) {
 	// Set up a dummy auth token for testing
-	os.Setenv("AUTH_TOKEN", "dummy_token")
+	os.Setenv("APP_AUTH_TOKEN", "dummy_token")
 	code := m.Run()
-	os.Unsetenv("AUTH_TOKEN")
+	os.Unsetenv("APP_AUTH_TOKEN")
 	os.Exit(code)
 }
 

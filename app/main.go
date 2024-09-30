@@ -73,9 +73,9 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	authToken := os.Getenv("AUTH_TOKEN")
+	authToken := os.Getenv("APP_AUTH_TOKEN")
 	if authToken == "" {
-		log.Fatalf("AUTH_TOKEN is not set in the environment")
+		log.Fatalf("APP_AUTH_TOKEN is not set in the environment")
 	}
 
 	http.HandleFunc("/", catFactsHandler(authToken))
