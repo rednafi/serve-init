@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # Install git (necessary to download dependencies)
 RUN apk add --no-cache git
@@ -8,7 +8,7 @@ RUN apk add --no-cache git
 WORKDIR /app
 
 # Copy the rest of the application code
-COPY . .
+COPY ./app/* .
 
 # Build the application
 RUN go build -o main .

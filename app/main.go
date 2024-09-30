@@ -67,6 +67,11 @@ func catFactsHandler(authToken string) http.HandlerFunc {
 	}
 }
 
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
 func main() {
 	authToken := os.Getenv("AUTH_TOKEN")
 	if authToken == "" {
@@ -74,6 +79,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", catFactsHandler(authToken))
+	http.HandleFunc("/up", healthCheckHandler)
 
 	log.Println("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

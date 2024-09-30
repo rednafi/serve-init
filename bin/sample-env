@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Create/update .env.sample, preserving comments, blank lines, and keeping referenced
+# variables intact
+
+set -euo pipefail
+
+# Check if the .env file exists
+if [[ ! -f .env ]]; then
+    echo ".env file not found!"
+    exit 1
+fi
+
+# Remove the existing .env.sample if it exists
+rm -f .env.sample
+
+# Create .env.sample by removing the values of the variables
+sed -E 's/^([[:alnum:]_]+)=([^\$].*)$/\1=/' .env > .env.sample
+
+echo ".env.sample created successfully!"

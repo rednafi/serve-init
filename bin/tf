@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# Terraform wrapper script
+
+set -euo pipefail
+
+
+# Function to run terraform commands in the terraform directory
+run_terraform_cmd() {
+    local cmd=$1
+    direnv exec . true
+
+    pushd terraform > /dev/null
+    terraform "$cmd" "${@:2}"
+    popd > /dev/null
+}
+
+# Function definitions for terraform commands
+tf_init() {
+    run_terraform_cmd init
+}
+
+tf_plan() {
+    run_terraform_cmd plan
+}
+
+tf_refresh() {
+    run_terraform_cmd refresh
+}
+
+tf_apply() {
+    run_terraform_cmd apply
+}
+
+tf_destroy() {
+    run_terraform_cmd destroy
+}
+
+# Main function to handle command-line arguments
+main() {
+    case $1 in
+        tf-init)
+            tf_init
+            ;;
+        tf-plan)
+            tf_plan
+            ;;
+        tf-apply)
+            tf_apply
+            ;;
+        tf-refresh)
+            tf_refresh
+            ;;
+        tf-destroy)
+            tf_destroy
+            ;;
+        *)
+            echo "Invalid command"
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

@@ -1,0 +1,183 @@
+---
+- hosts: all
+  become: true
+  vars:
+    new_username: ubuntu
+    root_ssh_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_ed25519.pub') }}"
+
+  roles:
+    - role: geerlingguy.docker
+      vars:
+        docker_users:
+          - ubuntu
+    - role: artis3n.tailscale
+      vars:
+        verbose: true
+        tailscale_authkey: "{{ lookup('env', 'TAILSCALE_AUTH_KEY') }}"
+        tailscale_extra_args: "--ssh"  # Tailscale extra args
+
+  tasks:
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+
+    - name: Install OpenSSH server
+      apt:
+        name: openssh-server
+        state: latest
+
+    - name: Ensure SSH service is running and enabled
+      service:
+        name: ssh
+        state: started
+        enabled: yes
+
+    - name: Setup passwordless sudo for the new user
+      lineinfile:
+        path: /etc/sudoers.d/{{ new_username }}
+        state: present
+        line: "{{ new_username }} ALL=(ALL) NOPASSWD: ALL"
+        create: yes
+        validate: "/usr/sbin/visudo -cf %s"
+
+    - name: Create a new regular user with sudo privileges
+      user:
+        name: "{{ new_username }}"
+        state: present
+        groups: sudo
+        append: true
+        create_home: true
+        shell: /bin/bash
+
+    - name: Ensure the .ssh directory exists for the new user
+      file:
+        path: "/home/{{ new_username }}/.ssh"
+        state: directory
+        mode: '0700'
+        owner: "{{ new_username }}"
+        group: "{{ new_username }}"
+
+    - name: Set authorized key for remote user (SSH access for new user)
+      ansible.posix.authorized_key:
+        user: "{{ new_username }}"
+        state: present
+        key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_ed25519.pub') }}"
+      ignore_errors: yes  # To avoid breaking playbook if the key is missing
+
+    - name: Ensure correct permissions on authorized_keys for new user
+      file:
+        path: "/home/{{ new_username }}/.ssh/authorized_keys"
+        mode: '0600'
+        owner: "{{ new_username }}"
+        group: "{{ new_username }}"
+
+    # --- Add root SSH public key ---
+    - name: Ensure the .ssh directory exists for root
+      file:
+        path: "/root/.ssh"
+        state: directory
+        mode: '0700'
+        owner: root
+        group: root
+
+    - name: Set authorized key for root (SSH access for root)
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: "{{ root_ssh_key }}"
+      ignore_errors: yes  # To avoid breaking playbook if the key is missing
+
+    - name: Ensure correct permissions on authorized_keys for root
+      file:
+        path: "/root/.ssh/authorized_keys"
+        mode: '0600'
+        owner: root
+        group: root
+
+    # --- SSH configuration updates ---
+    - name: Permit root login with SSH key but disable password login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin prohibit-password'
+        backup: yes
+
+    - name: Disable password authentication globally
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        backup: yes
+
+    - name: Disable keyboard-interactive authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?KbdInteractiveAuthentication'
+        line: 'KbdInteractiveAuthentication no'
+        backup: yes
+
+    - name: Ensure PubkeyAuthentication is enabled
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PubkeyAuthentication'
+        line: 'PubkeyAuthentication yes'
+        backup: yes
+
+    # Restart SSH service to apply configuration changes
+    - name: Restart SSH service
+      service:
+        name: ssh
+        state: restarted
+
+    # --- UFW Configuration for Ports 80 and 443 ---
+    - name: Ensure UFW is installed
+      apt:
+        name: ufw
+        state: present
+
+    - name: Ensure UFW is enabled
+      ufw:
+        state: enabled
+        policy: allow
+
+    - name: Allow HTTP (port 80)
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+
+    - name: Allow HTTPS (port 443)
+      ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+
+    - name: Ensure UFW rules are reloaded
+      command: ufw reload
+
+    # Debugging output to verify changes
+    - name: Check PermitRootLogin setting
+      command: grep PermitRootLogin /etc/ssh/sshd_config
+      register: root_login_status
+
+    - name: Output root login status
+      debug:
+        var: root_login_status.stdout
+
+    - name: Check PasswordAuthentication setting
+      command: grep PasswordAuthentication /etc/ssh/sshd_config
+      register: password_auth_status
+
+    - name: Output password authentication status
+      debug:
+        var: password_auth_status.stdout
+
+    - name: Check KbdInteractiveAuthentication setting
+      command: grep KbdInteractiveAuthentication /etc/ssh/sshd_config
+      register: kbd_interactive_status
+
+    - name: Output KbdInteractiveAuthentication status
+      debug:
+        var: kbd_interactive_status.stdout

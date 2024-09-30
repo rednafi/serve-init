@@ -1,7 +1,9 @@
 ---
 - name: Upgrade Ubuntu servers to the latest stable LTS version
   hosts: all
-  become: yes
+  become_method: sudo
+  become_user: root
+
   tasks:
     - name: Update APT package index
       apt:
