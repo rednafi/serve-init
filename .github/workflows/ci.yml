@@ -51,15 +51,15 @@ jobs:
 
       - name: Create .env for kamal (this is a hack!)
         run: |
-          echo "KAMAL_REGISTRY_PASSWORD=${{ secrets.KAMAL_REGISTRY_PASSWORD }}" > .env
-          echo "APP_AUTH_TOKEN=${{ secrets.APP_AUTH_TOKEN }}" >> .env
+          echo "KAMAL_REGISTRY_PASSWORD=${{ secrets.KAMAL_REGISTRY_PASSWORD }}" > $GITHUB_WORKSPACE/.env
+          echo "APP_AUTH_TOKEN=${{ secrets.APP_AUTH_TOKEN }}" >> $GITHUB_WORKSPACE/.env
 
       - name: Deploy to VM with Kamal
         run: |
-          set -o allexport; source .env; set +o allexport; kamal deploy -vvv
+          set -o allexport; source $GITHUB_WORKSPACE/.env; set +o allexport; kamal deploy -vvv
 
       # Always clean up the .env file, even if deployment fails
       - name: Clean up .env file
         if: always()
         run: |
-          rm -f .env
+          rm -f $GITHUB_WORKSPACE/.env
