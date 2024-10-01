@@ -51,10 +51,17 @@ jobs:
       - name: Install kamal
         run: gem install kamal
 
-      - name: Set up Tailscale
+      - name: Install Tailscale (latest version)
         run: |
           curl -fsSL https://tailscale.com/install.sh | sh
-          sudo tailscale up --authkey ${{ secrets.TAILSCALE_AUTH_TOKEN }} --ssh --advertise-tags=tag:omni --advertise-routes=192.168.1.0/24
+
+      - name: Set up Tailscale
+        run: |
+          sudo tailscale up \
+            --authkey ${{ secrets.TAILSCALE_AUTH_TOKEN }} \
+            --ssh \
+            --advertise-tags=tag:omni \
+            --advertise-routes=192.168.1.0/24
         env:
           TAILSCALE_AUTH_TOKEN: ${{ secrets.TAILSCALE_AUTH_TOKEN }}
 
