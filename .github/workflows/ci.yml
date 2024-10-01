@@ -45,19 +45,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Install direnv
-        run: |
-          sudo apt-get update && sudo apt-get install -y direnv
-
-      - name: Create .env file
-        run: |
-          echo "KAMAL_REGISTRY_PASSWORD=${{ secrets.KAMAL_REGISTRY_PASSWORD }}" > .env
-          echo "APP_AUTH_TOKEN=${{ secrets.APP_AUTH_TOKEN }}" >> .env
-
-      - name: Allow direnv to load environment variables
-        run: |
-          direnv allow
-
       - name: Test SSH connection (verbose)
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@116.203.21.146 'echo "SSH into server successful"'
