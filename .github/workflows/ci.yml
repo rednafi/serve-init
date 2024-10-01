@@ -51,7 +51,7 @@ jobs:
 
       - name: Deploy to VM with Kamal
         run: |
-          direnv exec . kamal deploy -vvv
+          kamal deploy -vvv
 
       # Always clean up the .env file, even if deployment fails
       - name: Clean up .env file
