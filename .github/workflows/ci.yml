@@ -40,31 +40,18 @@ jobs:
       - name: Install kamal
         run: gem install kamal
 
-      - name: Install Tailscale
-        run: |
-          curl -fsSL https://tailscale.com/install.sh | sh
-
-      - name: Tailscale
-        uses: tailscale/github-action@v2
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.8.1
         with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:omni
-
-      - name: Check Tailscale status
-        run: sudo tailscale status
-
-      - name: Test Tailscale ping to target machine
-        run: sudo tailscale ping hetzner-ubuntu
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Test SSH connection (verbose)
         run: |
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@hetzner-ubuntu 'echo "SSH into Tailscale network successful"'
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@116.203.21.146 'echo "SSH into server successful"'
 
-  cleanup:
-    runs-on: ubuntu-latest
-    needs: deploy
-    if: always()
-    steps:
-      - name: Bring down Tailscale
-        run: sudo tailscale down
+      - name: Deploy to VM with Kamal
+        run: |
+          kamal deploy
+        env:
+          KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
+          APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN }}
