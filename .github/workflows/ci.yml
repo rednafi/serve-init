@@ -56,7 +56,7 @@ jobs:
 
       - name: Deploy to VM with Kamal
         run: |
-          kamal deploy -vvv
+          set -o allexport; source .env; set +o allexport; kamal deploy -vvv
 
       # Always clean up the .env file, even if deployment fails
       - name: Clean up .env file
