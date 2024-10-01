@@ -21,8 +21,8 @@ jobs:
         run: cd app && gofmt -l . | tee fmt.log && test -z "$(cat fmt.log)"
 
       - name: Run tests
+        working-directory: ./app
         run: |
-          cd app
           go test ./...
 
   deploy:
