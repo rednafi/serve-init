@@ -51,7 +51,7 @@ jobs:
 
       - name: Deploy to VM with Kamal
         run: |
-          kamal deploy
+          kamal deploy -vvv
         env:
           KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
           APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN }}
