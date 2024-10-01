@@ -43,10 +43,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Set up Ruby and install kamal
+      - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.3
+
+      - name: Install kamal
         run: gem install kamal
 
       - name: Set up Tailscale
