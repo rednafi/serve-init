@@ -45,21 +45,29 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Install direnv
+        run: |
+          sudo apt-get update && sudo apt-get install -y direnv
+
+      - name: Create .env file
+        run: |
+          echo "KAMAL_REGISTRY_PASSWORD=${{ secrets.KAMAL_REGISTRY_PASSWORD }}" > .env
+          echo "APP_AUTH_TOKEN=${{ secrets.APP_AUTH_TOKEN }}" >> .env
+
+      - name: Allow direnv to load environment variables
+        run: |
+          direnv allow
+
       - name: Test SSH connection (verbose)
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@116.203.21.146 'echo "SSH into server successful"'
 
-      - name: Create .env for kamal (this is a hack!)
-        run: |
-          echo "KAMAL_REGISTRY_PASSWORD=${{ secrets.KAMAL_REGISTRY_PASSWORD }}" > $GITHUB_WORKSPACE/.env
-          echo "APP_AUTH_TOKEN=${{ secrets.APP_AUTH_TOKEN }}" >> $GITHUB_WORKSPACE/.env
-
       - name: Deploy to VM with Kamal
         run: |
-          set -o allexport; source $GITHUB_WORKSPACE/.env; set +o allexport; kamal deploy -vvv
+          direnv exec . kamal deploy -vvv
 
       # Always clean up the .env file, even if deployment fails
       - name: Clean up .env file
         if: always()
         run: |
-          rm -f $GITHUB_WORKSPACE/.env
+          rm -f .env
