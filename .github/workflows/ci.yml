@@ -44,15 +44,12 @@ jobs:
         run: |
           curl -fsSL https://tailscale.com/install.sh | sh
 
-      - name: Set up Tailscale
-        run: |
-          sudo tailscale up \
-            --authkey "${{ secrets.TAILSCALE_AUTH_TOKEN }}" \
-            --ssh \
-            --advertise-tags="tag:omni"
-          sleep 10
-        env:
-          TAILSCALE_AUTH_TOKEN: ${{ secrets.TAILSCALE_AUTH_TOKEN }}
+      - name: Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:omni
 
       - name: Check Tailscale status
         run: sudo tailscale status
@@ -63,3 +60,11 @@ jobs:
       - name: Test SSH connection (verbose)
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@hetzner-ubuntu 'echo "SSH into Tailscale network successful"'
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    steps:
+      - name: Bring down Tailscale
+        run: sudo tailscale down
