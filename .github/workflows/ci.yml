@@ -48,10 +48,28 @@ jobs:
         with:
           ruby-version: 3.3
 
-      - name: Install kamal
+      - name: Cache kamal
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bundle
+          key: kamal-${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            kamal-${{ runner.os }}-
+
+      - name: Install kamal (only if cache misses)
+        if: steps.cache.outputs.cache-hit != 'true'
         run: gem install kamal
 
-      - name: Install Tailscale (latest version)
+      - name: Cache Tailscale binaries
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/tailscale
+          key: tailscale-${{ runner.os }}-${{ hashFiles('**/install.sh') }}
+          restore-keys: |
+            tailscale-${{ runner.os }}-
+
+      - name: Install Tailscale (only if cache misses)
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           curl -fsSL https://tailscale.com/install.sh | sh
 
@@ -60,12 +78,17 @@ jobs:
           sudo tailscale up \
             --authkey "${{ secrets.TAILSCALE_AUTH_TOKEN }}" \
             --ssh \
-            --advertise-tags="tag:omni" \
-            --advertise-routes="192.168.1.0/24"
+            --advertise-tags="tag:omni"
           sleep 10
         env:
           TAILSCALE_AUTH_TOKEN: ${{ secrets.TAILSCALE_AUTH_TOKEN }}
 
-      - name: Test SSH connection
+      - name: Check Tailscale status
+        run: sudo tailscale status
+
+      - name: Test Tailscale ping to target machine
+        run: sudo tailscale ping hetzner-ubuntu
+
+      - name: Test SSH connection (verbose)
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@hetzner-ubuntu 'echo "SSH into Tailscale network successful"'
+          ssh -v -o StrictHostKeyChecking=no root@hetzner-ubuntu 'echo "SSH into Tailscale network successful"'
