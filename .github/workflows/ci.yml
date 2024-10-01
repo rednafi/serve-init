@@ -67,4 +67,4 @@ jobs:
 
       - name: Test SSH connection
         run: |
-          ssh -o StrictHostKeyChecking=no root@116.203.21.146 'echo "SSH into Tailscale network successful"'
+          ssh -o StrictHostKeyChecking=no ubuntu@hetzner-ubuntu 'echo "SSH into Tailscale network successful"'
