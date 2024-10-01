@@ -49,9 +49,17 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@116.203.21.146 'echo "SSH into server successful"'
 
+      - name: Create .env for kamal (this is a hack!)
+        run: |
+          echo "KAMAL_REGISTRY_PASSWORD=${{ secrets.KAMAL_REGISTRY_PASSWORD }}" > .env
+          echo "APP_AUTH_TOKEN=${{ secrets.APP_AUTH_TOKEN }}" >> .env
+
       - name: Deploy to VM with Kamal
         run: |
           kamal deploy -vvv
-        env:
-          KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
-          APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN }}
+
+      # Always clean up the .env file, even if deployment fails
+      - name: Clean up .env file
+        if: always()
+        run: |
+          rm -f .env
